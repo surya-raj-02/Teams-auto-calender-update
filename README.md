@@ -9,6 +9,15 @@ $ cd Teams-auto-calender-update
 $ pip3 install -r requirements.txt 
 $ python3 run.py
 ```
+If you want to see everything happening automatically... run:
+```sh
+$ python3 run.py -o
+```
+or
+```sh
+$ python3 run.py --show-output
+```
+
 Rest of the usage is pretty self-explainatory... so Enjoy.
 
 Any defects in the code, Do let me know.
