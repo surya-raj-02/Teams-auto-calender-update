@@ -64,7 +64,12 @@ def main():
                     meets1 = waitall("xpath","//div[@title = 'Click to see details of this meeting']",driver)
                     meets1[x].click()
                     delay(random.randint(1,3))
-                    wait("xpath","//button[@data-tid='calv2-sf-add-to-calendar']",driver).click()
+                    try:
+                        wait("xpath","//button[@data-tid='calv2-sf-add-to-calendar']",driver).click()
+                        print("Meeting added to calender")
+                    except:
+                        print("Meeting already in Calender.")
+                        print("Could also be other issue... code is still in beta\n")
                     x+=1
                     meets.pop(0)
                     delay(random.randint(1,3))
