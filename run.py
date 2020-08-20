@@ -91,10 +91,16 @@ def main():
         try:
             wait("xpath","//button[@class = 'school-app-back-button ts-sym app-icons-fill-hover app-icons-fill-focus button-command focus-round-border']",driver).click()
         except:
-            driver.back()
+            wait("xpath","//button[@id = 'app-bar-66aeee93-507d-479a-a3ef-8f494af43945']",driver).click()
         delay(random.randint(1,3))
         i+=1
         teams.pop(0)
+    wait("xpath","//button[@id = 'app-bar-ef56c0de-36fc-4ef8-b417-3d82ba9d073c']",driver).click()
+    delay(random.randint(1,3))
+    #upcoming = waitall("css","div.node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X",driver,20)
+    #running = waitall("class","node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__activeCall--25Ch-",driver)
+    #print("upcoming:",len(upcoming))
+    #print("running:",len(running))
     print("Thank you for running the code and giving me all ur details.... Just kidding.. the code is open-source it is safe... check for yourself.")
     delay(5)
     driver.quit()
