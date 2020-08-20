@@ -83,7 +83,10 @@ def main():
         except:
             print("Looks like you dont have any meetings...")
         delay(random.randint(1,3))
-        wait("xpath","//button[@class = 'school-app-back-button ts-sym app-icons-fill-hover app-icons-fill-focus button-command focus-round-border']",driver).click()
+        try:
+            wait("xpath","//button[@class = 'school-app-back-button ts-sym app-icons-fill-hover app-icons-fill-focus button-command focus-round-border']",driver).click()
+        except:
+            driver.back()
         delay(random.randint(1,3))
         i+=1
         teams.pop(0)
