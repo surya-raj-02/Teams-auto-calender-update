@@ -1,108 +1,105 @@
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.options import Options
-from time import sleep as delay
-from selenium.webdriver.support.ui import WebDriverWait
+import time
 import random
-from extra import wait, waitall
-import sys
+import utils
+import argparse
+import log
+from getpass import getpass
+
+parser = argparse.ArgumentParser(description='Show browser window or not')
+parser.add_argument('--show-browser', '-b', action='store_true',
+                    help='Show browser window', dest='show_browser')
+args = parser.parse_args()
+driver = utils.make_driver(args.show_browser)
+load = utils.load(driver)
+load_all = utils.load_all(driver)
+
+def human_delay(start=1, end=3):
+    time.sleep(random.randrange(start, end))
 
 def main():
 
-    mail = input("Enter teams username:")
-    passw = input("Enter teams password:")
-
-    try:
-        x = sys.argv[1]
-        if x == "-o" or "--show-output":
-            driver = Chrome()
-        else:
-            chromeOptions = Options()
-            chromeOptions.add_argument('headless')
-            driver = Chrome(options=chromeOptions)
-    except:
-        chromeOptions = Options()
-        chromeOptions.add_argument('headless')
-        driver = Chrome(options=chromeOptions)
-
+    username = input("Enter your Teams email-id: ")
+    password = getpass()
     driver.get("https://teams.microsoft.com")
-    email = wait("name","loginfmt",driver)
-    email.send_keys(mail)
-    delay(random.randint(1,3))
-    wait("id","idSIButton9",driver).click()
-    print("Sent mail id to teams")
-    delay(random.randint(1,3))
-    password = wait("xpath","//input[@class = 'form-control input ext-input text-box ext-text-box']",driver)
-    password.send_keys(passw)
-    delay(random.randint(1,3))
-    wait("xpath","//input[@type='submit']",driver).click()
-    print("Sent password to teams")
+    email_form = load("name","loginfmt")
+    email_form.send_keys(username)
+    human_delay()
+    load("id","idSIButton9").click()
+    password_form = load("xpath","//input[@class = 'form-control input ext-input text-box ext-text-box']")
+    password_form.send_keys(password)
+    human_delay()
+    load("xpath","//input[@type='submit']").click()
+    load("xpath","//input[@class = 'button ext-button secondary ext-secondary']").click()
+    log.info('Logged you in.')
     try:
-        delay(random.randint(1,3))
-        wait("xpath","//input[@class = 'button ext-button secondary ext-secondary']",driver).click()
-        delay(random.randint(1,3))
-        print("Just sit back and relax")
-    except:
-        print("Just sit back and relax")
-    try:
-        teams = waitall("class","team-card",driver,20)
-        print("Got all ur the teams ;)")
-    except:
-        print("Ur teams are not organized according to this code... usually code is supposed to handle this... but this code was made for a very small set of people... if you want the feature included... let me know")
+        all_classrooms = len(load_all("class","team-card"))
+        log.info('Found all your teams. YAY.')
+    except Exception as e:
+        log.error('Something went wrong; Probably that your teams are in some weird messed up way.')
         exit()
-    delay(random.randint(1,3))
-    i = 0
-    while teams:
-        teams1 = waitall("class","team-card",driver,20)
-        teams1[i].click()
-        delay(random.randint(1,3))
+    for classroom_id in range(all_classrooms):
+        classrooms = load_all("class","team-card")
+        classrooms[classroom_id].click()
+        human_delay()
+        
         try:
-            meets = waitall("xpath","//div[@title = 'Click to see details of this meeting']",driver)
-            if len(meets) > 1:
-                print("Too many meetings to handle... but lemme give it a try")
-                x = 0
-                while meets:
-                    meets1 = waitall("xpath","//div[@title = 'Click to see details of this meeting']",driver)
-                    meets1[x].click()
-                    delay(random.randint(1,3))
+            all_classes = load_all("xpath","//div[@title = 'Click to see details of this meeting']")
+            class_number = len(all_classes)
+            if class_number > 1:
+                for class_id in range(class_number):
+                    classes = load_all("xpath","//div[@title = 'Click to see details of this meeting']")
+                    class_name = classes[class_id].find_element_by_class_name('title-icon').text
+                    classes[class_id].click()
+                    human_delay()
+                    class_time = load('xpath',
+                        '//*[@id="page-content-wrapper"]/div[1]/div/div/'
+                        'calendar-dialog-bridge/div/div[2]/div[2]/div/div[1]/div/div/'
+                        'div/div[1]/div/div/div[1]/label').text
                     try:
-                        wait("xpath","//button[@data-tid='calv2-sf-add-to-calendar']",driver).click()
-                        print("Meeting added to calender")
+                        load("xpath","//button[@data-tid='calv2-sf-add-to-calendar']").click()
+                        log.info(f'{class_name} added to calendar.\n'+' '*31+
+                                   f'It is scheduled for {class_time}')
+                        
                     except:
-                        print("Meeting already in Calender.")
-                        print("Could also be other issue... code is still in beta\n")
-                    x+=1
-                    meets.pop(0)
-                    delay(random.randint(1,3))
+                        log.warn(f'{class_name} is already in calendar.\n'+' '*31+
+                                   f'It is scheduled for {class_time}')
+                        log.warn('It might also have been another issue, the code is not perfect yet.')
+                    human_delay()
                     driver.back()
             else:
-                meets[0].click()
-                delay(random.randint(1,3))
+                class_name = all_classes[0].find_element_by_class_name('title-icon').text
+                all_classes[0].click()
+                human_delay()
+                class_time = load('xpath',
+                    '//*[@id="page-content-wrapper"]/div[1]/div/div/'
+                    'calendar-dialog-bridge/div/div[2]/div[2]/div/div[1]/div/div/'
+                    'div/div[1]/div/div/div[1]/label').text
                 try:
-                    wait("xpath","//button[@data-tid='calv2-sf-add-to-calendar']",driver).click()
-                    print("Meeting added to calender")
+                    load("xpath","//button[@data-tid='calv2-sf-add-to-calendar']").click()
+                    log.info(f'{class_name} added to calendar.\n'+' '*31+
+                                f'It is scheduled for {class_time}')
                 except:
-                    print("Meeting already in Calender.")
-                    print("Could also be other issue... code is still in beta\n")
-                delay(random.randint(1,3))
+                    log.warn(f'{class_name} is already in calendar.\n'+' '*31+
+                                f'It is scheduled for {class_time}')
+                    log.warn('It might also have been another issue, the code is not perfect yet.')
+                human_delay()
                 driver.back()
-        except:
-            print("Looks like you dont have any meetings...")
-        delay(random.randint(1,3))
+        except Exception as e:
+            print(f'Exception: {e}')
+            log.warn("Looks like you don't have any classes in this classroom, or something else went wrong.")
         try:
-            wait("xpath","//button[@class = 'school-app-back-button ts-sym app-icons-fill-hover app-icons-fill-focus button-command focus-round-border']",driver).click()
+            load("xpath","//button[@class = 'school-app-back-button ts-sym app-icons-fill-hover app-icons-fill-focus button-command focus-round-border']").click()
         except:
-            wait("xpath","//button[@id = 'app-bar-66aeee93-507d-479a-a3ef-8f494af43945']",driver).click()
-        delay(random.randint(1,3))
-        i+=1
-        teams.pop(0)
-    wait("xpath","//button[@id = 'app-bar-ef56c0de-36fc-4ef8-b417-3d82ba9d073c']",driver).click()
-    delay(random.randint(1,3))
-    #upcoming = waitall("css","div.node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X",driver,20)
-    #running = waitall("class","node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__activeCall--25Ch-",driver)
+            load("xpath","//button[@id = 'app-bar-66aeee93-507d-479a-a3ef-8f494af43945']").click()
+        human_delay()
+    load("xpath","//button[@id = 'app-bar-ef56c0de-36fc-4ef8-b417-3d82ba9d073c']").click()
+    human_delay()
+    #upcoming = load_all("css","div.node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X",driver)
+    #running = load_all("class","node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__eventCard--h5y4X node_modules--msteams-bridges-components-calendar-event-card-dist-es-src-renderers-event-card-renderer-event-card-renderer__activeCall--25Ch-",driver)
     #print("upcoming:",len(upcoming))
     #print("running:",len(running))
-    print("Thank you for running the code and giving me all ur details.... Just kidding.. the code is open-source it is safe... check for yourself.")
-    delay(5)
+    #print("Thank you for running the code and giving me all your details.... Just kidding.. the code is open-source it is safe... check for yourself.")
+    print('#FREEATTENDANCEFTW')
     driver.quit()
 
 
